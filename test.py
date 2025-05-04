@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import CORS
 import numpy as np
 import cv2
 from tensorflow.keras.models import load_model
 from tensorflow.keras.metrics import Precision, Recall
-import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 app = Flask(__name__)
+
+# Enable CORS for the entire app
+CORS(app)  # This allows all origins by default
 
 # Define the class names
 class_names = [
@@ -32,7 +35,6 @@ class_names = [
 custom_objects = {'Precision': Precision, 'Recall': Recall}
 model = load_model('model_fine-tune_EXV5.h5', custom_objects=custom_objects)
 
-
 # Image preprocessing function
 def preprocess_image(image):
     img = cv2.resize(image, (224, 224))
@@ -40,7 +42,6 @@ def preprocess_image(image):
     img = np.array(img, dtype='float32') / 255.0
     img = img.reshape(1, 224, 224, 3)
     return img
-
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -63,7 +64,6 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({
@@ -72,7 +72,6 @@ def home():
         'method': 'POST',
         'required': 'image file'
     })
-
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)
